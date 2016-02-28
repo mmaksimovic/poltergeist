@@ -30,27 +30,27 @@ class Poltergeist.WebPage
     @_responseHeaders = []
 
     for callback in WebPage.CALLBACKS
-      this.bindCallback(callback)
+      @bindCallback(callback)
 
     if phantom.version.major < 2
       @._overrideNativeEvaluate()
 
   for command in @COMMANDS
     do (command) =>
-      this.prototype[command] =
-        (args...) -> this.runCommand(command, args)
+      @prototype[command] =
+        (args...) -> @runCommand(command, args)
 
   for delegate in @DELEGATES
     do (delegate) =>
-      this.prototype[delegate] =
+      @prototype[delegate] =
         -> @_native[delegate].apply(@_native, arguments)
 
   onInitializedNative: ->
     @id += 1
     @source = null
     @injectAgent()
-    this.removeTempHeaders()
-    this.setScrollPosition(left: 0, top: 0)
+    @removeTempHeaders()
+    @setScrollPosition(left: 0, top: 0)
 
   onClosingNative: ->
     @handle = null
@@ -139,16 +139,15 @@ class Poltergeist.WebPage
     return true
 
   injectAgent: ->
-    if this.native().evaluate(-> typeof __poltergeist) == "undefined"
-      this.native().injectJs "#{phantom.libraryPath}/agent.js"
-      for extension in WebPage.EXTENSIONS
-        this.native().injectJs extension
+    if @native().evaluate(-> typeof __poltergeist) == "undefined"
+      @native().injectJs "#{phantom.libraryPath}/agent.js"
+      @native().injectJs extension for extension in WebPage.EXTENSIONS
       return true
     return false
 
   injectExtension: (file) ->
     WebPage.EXTENSIONS.push file
-    this.native().injectJs file
+    @native().injectJs file
 
   native: ->
     if @closed
@@ -157,7 +156,7 @@ class Poltergeist.WebPage
       @_native
 
   windowName: ->
-    this.native().windowName
+    @native().windowName
 
   keyCode: (name) ->
     name = "Control" if name == "Ctrl"
@@ -169,8 +168,7 @@ class Poltergeist.WebPage
 
   keyModifierKeys: (names) ->
     for name in names.split(',') when name isnt 'keypad'
-      name = name.charAt(0).toUpperCase() + name.substring(1)
-      this.keyCode(name)
+      this.keyCode(name.charAt(0).toUpperCase() + name.substring(1))
 
   _waitState_until: (state, callback, timeout, timeout_callback) ->
     if (@state == state)
@@ -193,8 +191,8 @@ class Poltergeist.WebPage
         setTimeout (=> @waitState(state, callback)), 100
 
   setHttpAuth: (user, password) ->
-    this.native().settings.userName = user
-    this.native().settings.password = password
+    @native().settings.userName = user
+    @native().settings.password = password
     return true
 
   networkTraffic: ->
@@ -215,15 +213,15 @@ class Poltergeist.WebPage
     url for own id, url of @_requestedResources
 
   content: ->
-    this.native().frameContent
+    @native().frameContent
 
   title: ->
-    this.native().frameTitle
+    @native().frameTitle
 
   frameUrl: (frameNameOrId) ->
     query = (frameNameOrId) ->
       document.querySelector("iframe[name='#{frameNameOrId}'], iframe[id='#{frameNameOrId}']")?.src
-    this.evaluate(query, frameNameOrId)
+    @evaluate(query, frameNameOrId)
 
   clearErrors: ->
     @errors = []
@@ -236,61 +234,59 @@ class Poltergeist.WebPage
     headers
 
   cookies: ->
-    this.native().cookies
+    @native().cookies
 
   deleteCookie: (name) ->
-    this.native().deleteCookie(name)
+    @native().deleteCookie(name)
 
   viewportSize: ->
-    this.native().viewportSize
+    @native().viewportSize
 
   setViewportSize: (size) ->
-    this.native().viewportSize = size
+    @native().viewportSize = size
 
   setZoomFactor: (zoom_factor) ->
-    this.native().zoomFactor = zoom_factor
+    @native().zoomFactor = zoom_factor
 
   setPaperSize: (size) ->
-    this.native().paperSize = size
+    @native().paperSize = size
 
   scrollPosition: ->
-    this.native().scrollPosition
+    @native().scrollPosition
 
   setScrollPosition: (pos) ->
-    this.native().scrollPosition = pos
+    @native().scrollPosition = pos
 
   clipRect: ->
-    this.native().clipRect
+    @native().clipRect
 
   setClipRect: (rect) ->
-    this.native().clipRect = rect
+    @native().clipRect = rect
 
   elementBounds: (selector) ->
-    this.native().evaluate(
+    @native().evaluate(
       (selector) ->
         document.querySelector(selector).getBoundingClientRect()
       , selector
     )
 
   setUserAgent: (userAgent) ->
-    this.native().settings.userAgent = userAgent
+    @native().settings.userAgent = userAgent
 
   getCustomHeaders: ->
-    this.native().customHeaders
+    @native().customHeaders
 
   setCustomHeaders: (headers) ->
-    this.native().customHeaders = headers
+    @native().customHeaders = headers
 
   addTempHeader: (header) ->
-    for name, value of header
-      @_tempHeaders[name] = value
+    @_tempHeaders[name] = value for name, value of header
     @_tempHeaders
 
   removeTempHeaders: ->
-    allHeaders = this.getCustomHeaders()
-    for name, value of @_tempHeaders
-      delete allHeaders[name]
-    this.setCustomHeaders(allHeaders)
+    allHeaders = @getCustomHeaders()
+    delete allHeaders[name] for name, value of @_tempHeaders
+    @setCustomHeaders(allHeaders)
 
   pushFrame: (name) ->
     return true if this.native().switchToFrame(name)
@@ -310,17 +306,17 @@ class Poltergeist.WebPage
       this.native().switchToParentFrame()
 
   dimensions: ->
-    scroll   = this.scrollPosition()
-    viewport = this.viewportSize()
+    scroll   = @scrollPosition()
+    viewport = @viewportSize()
 
     top:    scroll.top,  bottom: scroll.top  + viewport.height,
     left:   scroll.left, right:  scroll.left + viewport.width,
     viewport: viewport
-    document: this.documentSize()
+    document: @documentSize()
 
   # A work around for http://code.google.com/p/phantomjs/issues/detail?id=277
   validatedDimensions: ->
-    dimensions = this.dimensions()
+    dimensions = @dimensions()
     document   = dimensions.document
 
     if dimensions.right > document.width
@@ -331,7 +327,7 @@ class Poltergeist.WebPage
       dimensions.top    = Math.max(0, dimensions.top - (dimensions.bottom - document.height))
       dimensions.bottom = document.height
 
-    this.setScrollPosition(left: dimensions.left, top: dimensions.top)
+    @setScrollPosition(left: dimensions.left, top: dimensions.top)
 
     dimensions
 
@@ -341,28 +337,29 @@ class Poltergeist.WebPage
   # Before each mouse event we make sure that the mouse is moved to where the
   # event will take place. This deals with e.g. :hover changes.
   mouseEvent: (name, x, y, button = 'left') ->
-    this.sendEvent('mousemove', x, y)
-    this.sendEvent(name, x, y, button)
+    @sendEvent('mousemove', x, y)
+    @sendEvent(name, x, y, button)
 
   evaluate: (fn, args...) ->
-    this.injectAgent()
-    this.native().evaluate("function() {
+    @injectAgent()
+    @native().evaluate("function() {
       for(var i=0; i < arguments.length; i++){
         if ((typeof(arguments[i]) == 'object') && (typeof(arguments[i]['ELEMENT']) == 'object')){
           arguments[i] = window.__poltergeist.get(arguments[i]['ELEMENT']['id']).element;
         }
       }
-      var _result = #{this.stringifyCall(fn)};
+      var _result = #{@stringifyCall(fn)};
       return (_result == null) ? undefined : _result; }", args...)
 
   execute: (fn, args...) ->
-    this.native().evaluate("function() {
+    @injectAgent()
+    @native().evaluate("function() {
       for(var i=0; i < arguments.length; i++){
         if ((typeof(arguments[i]) == 'object') && (typeof(arguments[i]['ELEMENT']) == 'object')){
           arguments[i] = window.__poltergeist.get(arguments[i]['ELEMENT']['id']).element;
         }
       }
-      #{this.stringifyCall(fn)} }", args...)
+      #{@stringifyCall(fn)} }", args...)
 
   stringifyCall: (fn) ->
     "(#{fn.toString()}).apply(this, arguments)"
@@ -377,7 +374,7 @@ class Poltergeist.WebPage
   # phantom.onError. If result is null, that means there was an error
   # inside the agent.
   runCommand: (name, args) ->
-    result = this.evaluate(
+    result = @evaluate(
       (name, args) -> __poltergeist.externalCall(name, args),
       name, args
     )
@@ -396,10 +393,10 @@ class Poltergeist.WebPage
         result.value
 
   canGoBack: ->
-    this.native().canGoBack
+    @native().canGoBack
 
   canGoForward: ->
-    this.native().canGoForward
+    @native().canGoForward
 
   normalizeURL: (url) ->
     parser = document.createElement('a')
