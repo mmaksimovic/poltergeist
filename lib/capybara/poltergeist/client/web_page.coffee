@@ -376,7 +376,7 @@ class Poltergeist.WebPage
       name, args
     )
 
-    if result != null
+    if result?
       if result.error?
         switch result.error.message
           when 'PoltergeistAgent.ObsoleteNode'
