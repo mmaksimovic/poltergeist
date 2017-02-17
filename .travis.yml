@@ -49,3 +49,4 @@ matrix:
   allow_failures:
     - gemfile: gemfiles/Gemfile.capybara_master
     - rvm: jruby-9.1.7.0
+    - rvm: rbx-3
