@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 script: bundle exec rake
 before_script: ${PHANTOMJS:-phantomjs} --version
@@ -15,7 +16,7 @@ rvm:
   - 2.3.0
   - 2.2.2
   - 2.1.6
-  - rbx
+  - rubinius
 gemfile:
   - Gemfile
 env:
@@ -47,5 +48,4 @@ matrix:
       env: PHANTOMJS=$PWD/travis-phantomjs21/phantomjs
   allow_failures:
     - gemfile: gemfiles/Gemfile.capybara_master
-    - rvm: rbx
     - rvm: jruby-9.1.7.0
