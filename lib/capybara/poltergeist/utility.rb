@@ -8,6 +8,10 @@ module Capybara
       def jruby?
         RUBY_PLATFORM == "java"
       end
+
+      def rubinius?
+        defined?(RUBY_ENGINE) && RUBY_ENGINE == "rbx"
+      end
     end
   end
 end

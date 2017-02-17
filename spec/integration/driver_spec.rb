@@ -78,7 +78,7 @@ module Capybara::Poltergeist
 
     it 'is threadsafe in how it captures console.log' do
       stdout = capture_stdout do
-        pending if Capybara::Poltergeist.jruby?
+        pending if Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
 
         # Write something to STDOUT right before Process.spawn is called
         allow(Process).to receive(:spawn).and_wrap_original do |m,*args|

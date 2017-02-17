@@ -103,7 +103,7 @@ module Capybara::Poltergeist
     # lose all the output from child. Process.popen can be used here and seems
     # it works with JRuby but I've experienced strange mistakes on Rubinius.
     def redirect_stdout
-      if Capybara::Poltergeist.jruby?
+      if Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
         begin
           prev = STDOUT.dup
           $stdout = @write_io
