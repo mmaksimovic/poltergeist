@@ -1,5 +1,5 @@
 dist: trusty
-sudo: required
+sudo: false
 script: bundle exec rake
 before_script: ${PHANTOMJS:-phantomjs} --version
 before_install:
