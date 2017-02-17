@@ -56,26 +56,25 @@ module Capybara::Poltergeist
       end
     end
 
-    unless Capybara::Poltergeist.jruby?
-      it 'is threadsafe in how it captures console.log' do
-        thread = Thread.new do
-          1.upto(100000) do |i|
-            puts i
-          end
+    it 'is threadsafe in how it captures console.log' do
+      pending if Capybara::Poltergeist.jruby?
+      thread = Thread.new do
+        1.upto(100000) do |i|
+          puts i
         end
-        begin
-          output = StringIO.new
-          Capybara.register_driver :poltergeist_with_logger do |app|
-            Capybara::Poltergeist::Driver.new(app, phantomjs_logger: output)
-          end
+      end
+      begin
+        output = StringIO.new
+        Capybara.register_driver :poltergeist_with_logger do |app|
+          Capybara::Poltergeist::Driver.new(app, phantomjs_logger: output)
+        end
 
-          session = Capybara::Session.new(:poltergeist_with_logger, TestApp)
-          session.visit('/poltergeist/console_log')
-          expect(output.string).to include('Hello world')
-        ensure
-          session.driver.quit
-          thread.join
-        end
+        session = Capybara::Session.new(:poltergeist_with_logger, TestApp)
+        session.visit('/poltergeist/console_log')
+        expect(output.string).to include('Hello world')
+      ensure
+        session.driver.quit
+        thread.join
       end
     end
 
