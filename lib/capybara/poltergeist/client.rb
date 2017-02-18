@@ -64,7 +64,7 @@ module Capybara::Poltergeist
 
       process_options = {}
       process_options[:pgroup] = true unless Capybara::Poltergeist.windows?
-      process_options[:out] = @write_io unless Capybara::Poltergeist.jruby?
+      process_options[:out] = @write_io unless Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
 
       redirect_stdout do
         @pid = Process.spawn(*command.map(&:to_s), process_options)
