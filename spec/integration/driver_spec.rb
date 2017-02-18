@@ -41,44 +41,27 @@ module Capybara::Poltergeist
       end
     end
 
-    it 'supports capturing console.log' do
-      begin
-        output = StringIO.new
-        Capybara.register_driver :poltergeist_with_logger do |app|
-          Capybara::Poltergeist::Driver.new(app, phantomjs_logger: output)
-        end
+    context 'output redirection' do
+      let(:logger) { StringIO.new }
+      let(:session) { Capybara::Session.new(:poltergeist_with_logger, TestApp) }
 
-        session = Capybara::Session.new(:poltergeist_with_logger, TestApp)
-        session.visit('/poltergeist/console_log')
-        expect(output.string).to include('Hello world')
-      ensure
+      before do
+        Capybara.register_driver :poltergeist_with_logger do |app|
+          Capybara::Poltergeist::Driver.new(app, phantomjs_logger: logger)
+        end
+      end
+
+      after do
         session.driver.quit
       end
-    end
 
-    def capture_stdout
-      capturer = StringIO.new
-      read_io, write_io = IO.pipe
-      out_thread = Thread.new {
-        while !read_io.eof? && data = read_io.readpartial(1024)
-          capturer.write(data)
-        end
-      }
-      prev = STDOUT.dup
-      $stdout = write_io
-      STDOUT.reopen(write_io)
-      yield
-      capturer.string
-    ensure
-      STDOUT.reopen(prev)
-      $stdout = STDOUT
-      prev.close
-      out_thread.kill
-    end
+      it 'supports capturing console.log' do
+        session.visit('/poltergeist/console_log')
+        expect(logger.string).to include('Hello world')
+      end
 
-    it 'is threadsafe in how it captures console.log' do
-      stdout = capture_stdout do
-        pending if Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
+      it 'is threadsafe in how it captures console.log' do
+        pending("JRuby and Rubinius do not support the :out parameter to Process.spawn, so there is no threadsafe way to redirect output") if Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
 
         # Write something to STDOUT right before Process.spawn is called
         allow(Process).to receive(:spawn).and_wrap_original do |m,*args|
@@ -87,21 +70,12 @@ module Capybara::Poltergeist
           m.call(*args)
         end
 
-        begin
-          output = StringIO.new
-          Capybara.register_driver :poltergeist_with_logger do |app|
-            Capybara::Poltergeist::Driver.new(app, phantomjs_logger: output)
-          end
-
-          session = Capybara::Session.new(:poltergeist_with_logger, TestApp)
+        expect {
           session.visit('/poltergeist/console_log')
-          expect(output.string).not_to match /\d/
-        ensure
-          session.driver.quit
-          allow(Process).to receive(:spawn).and_call_original # Reset the mock for Process.spawn to prevent spurious output to STDOUT
-        end
+        }.to output("1\n2\n").to_stdout_from_any_process
+
+        expect(logger.string).not_to match /\d/
       end
-      expect(stdout).to eq "1\n2\n"
     end
 
     it 'raises an error and restarts the client if the client dies while executing a command' do
