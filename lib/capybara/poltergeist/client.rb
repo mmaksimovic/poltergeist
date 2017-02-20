@@ -64,7 +64,7 @@ module Capybara::Poltergeist
 
       process_options = {}
       process_options[:pgroup] = true unless Capybara::Poltergeist.windows?
-      process_options[:out] = @write_io unless Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
+      process_options[:out] = @write_io # unless Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
 
       redirect_stdout do
         @pid = Process.spawn(*command.map(&:to_s), process_options)
@@ -103,20 +103,20 @@ module Capybara::Poltergeist
     # lose all the output from child. Process.popen can be used here and seems
     # it works with JRuby but I've experienced strange mistakes on Rubinius.
     def redirect_stdout
-      if Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
-        begin
-          prev = STDOUT.dup
-          $stdout = @write_io
-          STDOUT.reopen(@write_io)
-          yield
-        ensure
-          STDOUT.reopen(prev)
-          $stdout = STDOUT
-          prev.close
-        end
-      else
+      # if Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
+        # begin
+        #   prev = STDOUT.dup
+        #   $stdout = @write_io
+        #   STDOUT.reopen(@write_io)
+        #   yield
+        # ensure
+        #   STDOUT.reopen(prev)
+        #   $stdout = STDOUT
+        #   prev.close
+        # end
+      # else
         yield
-      end
+      # end
     end
 
     def kill_phantomjs

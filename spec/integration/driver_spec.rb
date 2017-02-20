@@ -60,7 +60,7 @@ module Capybara::Poltergeist
         expect(logger.string).to include('Hello world')
       end
 
-      it 'is threadsafe in how it captures console.log' do
+      it 'is threadsafe in how it captures console.log', focus_: true do
         pending("JRuby and Rubinius do not support the :out parameter to Process.spawn, so there is no threadsafe way to redirect output") if Capybara::Poltergeist.jruby? || Capybara::Poltergeist.rubinius?
 
         # Write something to STDOUT right before Process.spawn is called
