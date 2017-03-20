@@ -11,7 +11,8 @@ module Capybara::Poltergeist
       'Poltergeist.InvalidSelector' => InvalidSelector,
       'Poltergeist.StatusFailError' => StatusFailError,
       'Poltergeist.NoSuchWindowError' => NoSuchWindowError,
-      'Poltergeist.UnsupportedFeature' => UnsupportedFeature
+      'Poltergeist.UnsupportedFeature' => UnsupportedFeature,
+      'Poltergeist.KeyError' => KeyError,
     }
 
     attr_reader :server, :client, :logger
@@ -471,7 +472,7 @@ module Capybara::Poltergeist
           elsif key !~ /^[A-Z]/
             key = key.to_s.split('_').map{|e| e.capitalize}.join
           end
-          res || { key: key }
+          res || { key: key, symbol: true }
         when String
           key # Plain string, nothing to do
         end
